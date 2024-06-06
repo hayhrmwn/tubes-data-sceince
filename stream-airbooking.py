@@ -1,6 +1,6 @@
 from io import StringIO
 import logging
-import pickle
+import joblib
 import pandas as pd  
 import requests
 import streamlit as st 
@@ -8,14 +8,14 @@ import streamlit as st
 # URL untuk file CSV
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/blob/main/customer_booking.csv'
 # URL untuk file model Python
-model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/airlanes_booking_uas.pkl'
+model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/airlanes_booking_uas.joblib'
 
 # Mengambil konten dari GitHub
 airbook_model = requests.get(csv_url)
 model_content = requests.get(model_url).content
 
-# Memuat model menggunakan pickle
-airlanes_model = pickle.loads(model_content)
+# Memuat model menggunakan joblib
+airlanes_model = joblib.load(BytesIO(model_content))
 
 if airbook_model.status_code == 200:
     # Mengubah konten ke dalam DataFrame Pandas
