@@ -11,6 +11,9 @@ csv_path = 'customer_booking.csv'
 model_path = 'model.pkl'
 
 # Memastikan file CSV dan model ada
+airbooking_data = None
+airbooking_model = None
+
 if not os.path.exists(csv_path):
     logging.error(f"File CSV tidak ditemukan: {csv_path}")
     st.error(f"File CSV tidak ditemukan: {csv_path}")
@@ -66,6 +69,8 @@ airbook_prediction = ''
 if st.button('Tes Prediksi'):
     if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
         st.error("Semua input harus diisi.")
+    elif airbooking_model is None:
+        st.error("Model prediksi tidak tersedia.")
     else:
         try:
             # Melakukan prediksi dengan model
