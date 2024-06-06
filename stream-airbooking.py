@@ -103,4 +103,11 @@ if airbooking_model:
                 logging.info("Prediksi berhasil dilakukan.")
 
                 if prediction[0] == 1:
-                    airbook_prediction
+                    airbook_prediction = 'Perjalanan anda tepat'
+                else:
+                    airbook_prediction = 'Perjalanan anda kurang tepat'
+            except Exception as e:
+                logging.error(f"Terjadi kesalahan saat prediksi: {e}")
+                st.error(f"Terjadi kesalahan saat prediksi: {e}")
+
+    st.success(airbook_prediction)
