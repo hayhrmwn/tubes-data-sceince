@@ -3,7 +3,7 @@ import pickle
 from urllib import request
 import pandas as pd
 import streamlit as st
-import chardet  # Tambahkan impor untuk chardet
+
 
 # URL untuk CSV dan model
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
