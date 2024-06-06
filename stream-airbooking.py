@@ -8,8 +8,7 @@ logging.basicConfig(level=logging.INFO)
 
 # Jalur file
 csv_path = 'customer_booking.csv'
-model_path = 'model_path = '/path/to/your/models/airlines_booking_uas.pkl'
-'
+model_path = '/path/to/your/models/airlines_booking_uas.pkl'
 
 # Memastikan file CSV dan model ada
 airbooking_data = pd.read_csv('customer_booking.csv')
