@@ -5,6 +5,7 @@ import pandas as pd
 import requests
 import streamlit as st 
 
+st.title('Prediksi Model Airbooking')
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
 
 # Membaca isi file CSV dari URL
@@ -34,7 +35,6 @@ else:
 # Inisialisasi model prediksi (gunakan kode yang sesuai)
 airbooking_model = None
 
-st.title('Prediksi Model Airbooking')
 
 # Input kolom
 col1, col2 = st.columns(2)
