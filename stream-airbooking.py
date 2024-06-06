@@ -1,43 +1,18 @@
-from io import StringIO
 import logging
 import pickle
-import pandas as pd  
-import requests
+from urllib import request
+import pandas as pd 
 import streamlit as st 
 
-st.title('Prediksi Model Airbooking')
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
+airbook_model = 'https://github.com/hayhrmwn/tubes-data-sceince/blob/main/airlanes_booking_uas.py'
 
-# Membaca isi file CSV dari URL
-csv_content = requests.get(csv_url).content
+csv_content = request.get(csv_url).content
+airbook_content = request.get(airbook_model).content
 
-if csv_content:
-    # Mencoba beberapa enkoding yang berbeda untuk membaca file CSV
-    encodings = ['utf-8', 'latin1']
-    for encoding in encodings:
-        try:
-            # Membaca file CSV menggunakan enkoding yang sesuai
-            airbook_data = pd.read_csv(StringIO(csv_content.decode(encoding)))
-            # Jika berhasil, hentikan loop
-            break
-        except Exception as e:
-            logging.warning(f"Gagal membaca CSV dengan enkoding {encoding}: {e}")
-            airbook_data = None
-else:
-    st.error("Gagal mengambil file CSV.")
+st.title ("Prediksi data analysis airbooking ")
 
-if airbook_data is None:
-    st.error("Gagal membaca file CSV dengan semua enkoding yang dicoba.")
-else:
-    # Menampilkan data CSV jika berhasil dibaca
-    st.write(airbook_data)
-
-# Inisialisasi model prediksi (gunakan kode yang sesuai)
-airbooking_model = None
-
-
-# Input kolom
-col1, col2 = st.columns(2)
+col1, col2 = st.column(2)
 
 with col1:
     sales_channel = st.text_input('Input Sales Channel')
@@ -61,12 +36,12 @@ if st.button('Tes Prediksi'):
         st.error("Semua input harus diisi.")
     else:
         # Pastikan model sudah dimuat sebelumnya
-        if not airbooking_model:
+        if not airbook_model:
             st.error("Model prediksi tidak tersedia.")
         else:
             try:
                 # Lakukan prediksi dengan model (gunakan kode yang sesuai)
-                prediction = airbooking_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
+                prediction = airbook_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
                 logging.info("Prediksi berhasil dilakukan.")
 
                 if prediction[0] == 1:
@@ -78,3 +53,6 @@ if st.button('Tes Prediksi'):
                 st.error(f"Terjadi kesalahan saat prediksi: {e}")
 
 st.success(airbook_prediction)
+
+
+
