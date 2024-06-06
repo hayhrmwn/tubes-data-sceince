@@ -4,114 +4,69 @@ import pickle
 import pandas as pd  
 import requests
 import streamlit as st 
-import os
-import importlib.util
 
-# Fungsi untuk mengunduh dan mengimpor modul airlines_booking_uas.py
-def import_airlines_booking_model(module_url):
-    # Direktori tempat menyimpan file sementara
-    temp_dir = 'temp'
-    if not os.path.exists(temp_dir):
-        os.makedirs(temp_dir)
+# URL untuk file CSV
+csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/blob/main/customer_booking.csv'
+# URL untuk file model Python
+model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/airlanes_booking_uas.pkl'
 
-    # Path untuk menyimpan file sementara
-    temp_file_path = os.path.join(temp_dir, 'airlines_booking_uas.py')
+# Mengambil konten dari GitHub
+airbook_model = requests.get(csv_url)
+model_content = requests.get(model_url).content
 
-    # Mengunduh konten modul dari GitHub
-    response = requests.get(module_url)
+# Memuat model menggunakan pickle
+airlanes_model = pickle.loads(model_content)
 
-    if response.status_code == 200:
-        # Menyimpan konten ke dalam file sementara
-        with open(temp_file_path, 'wb') as f:
-            f.write(response.content)
+if airbook_model.status_code == 200:
+    # Mengubah konten ke dalam DataFrame Pandas
+    try:
+        df = pd.read_csv(StringIO(airbook_model.text))
+        # Tampilkan DataFrame
+        st.write(df)
+    except Exception as e:
+        st.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
+else:
+    st.error(f"Terjadi kesalahan saat mengambil file CSV: {airbook_model.status_code}")
 
-        # Mengimpor modul dari file sementara
-        spec = importlib.util.spec_from_file_location("airlines_booking_uas", temp_file_path)
-        airlines_booking_uas = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(airlines_booking_uas)
+st.title('Prediksi Model Airbooking')
 
-        # Mengembalikan model prediksi dari modul
-        return airlines_booking_uas.airbooking_model
+# Membuat kolom input
+col1, col2 = st.columns(2)
+
+with col1:
+    sales_channel = st.text_input('Input Sales Channel')
+
+with col2:
+    trip_type = st.text_input('Input Trip Type')
+
+with col1:
+    flight_day = st.text_input('Input Flight Day')
+
+with col2:
+    route = st.text_input('Input Route')
+
+with col1:
+    booking_origin = st.text_input('Input Booking Origin')
+
+airbook_prediction = ''
+
+if st.button('Tes Prediksi'):
+    if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
+        st.error("Semua input harus diisi.")
+    elif airbook_model is None:
+        st.error("Model prediksi tidak tersedia.")
     else:
-        print(f"Failed to download module from {module_url}. Status code: {response.status_code}")
-        return None
+        try:
+            # Melakukan prediksi dengan model
+            prediction = airlanes_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
+            logging.info("Prediksi berhasil dilakukan.")
 
-# URL modul airlines_booking_uas.py di GitHub
-module_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/airlines_booking_uas.py'
-
-# Impor model prediksi
-airbooking_model = import_airlines_booking_model(module_url)
-
-# Jika model berhasil diimpor, lanjutkan dengan aplikasi Streamlit
-if airbooking_model:
-    # URL file CSV
-    csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
-
-    # Membaca isi file CSV dari URL
-    csv_content = requests.get(csv_url).content
-
-    if csv_content:
-        # Mencoba beberapa enkoding yang berbeda untuk membaca file CSV
-        encodings = ['utf-8', 'latin1']
-        for encoding in encodings:
-            try:
-                # Membaca file CSV menggunakan enkoding yang sesuai
-                airbook_data = pd.read_csv(StringIO(csv_content.decode(encoding)))
-                # Jika berhasil, hentikan loop
-                break
-            except Exception as e:
-                logging.warning(f"Gagal membaca CSV dengan enkoding {encoding}: {e}")
-                airbook_data = None
-    else:
-        st.error("Gagal mengambil file CSV.")
-
-    if airbook_data is None:
-        st.error("Gagal membaca file CSV dengan semua enkoding yang dicoba.")
-    else:
-        # Menampilkan data CSV jika berhasil dibaca
-        st.write(airbook_data)
-
-    st.title('Prediksi Model Airbooking')
-
-    # Input kolom
-    col1, col2 = st.columns(2)
-
-    with col1:
-        sales_channel = st.text_input('Input Sales Channel')
-
-    with col2:
-        trip_type = st.text_input('Input Trip Type')
-
-    with col1:
-        flight_day = st.text_input('Input Flight Day')
-
-    with col2:
-        route = st.text_input('Input Route')
-
-    with col1:
-        booking_origin = st.text_input('Input Booking Origin')
-
-    airbook_prediction = ''
-
-    if st.button('Tes Prediksi'):
-        if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
-            st.error("Semua input harus diisi.")
-        else:
-            # Pastikan model sudah dimuat sebelumnya
-            if not airbooking_model:
-                st.error("Model prediksi tidak tersedia.")
+            if prediction[0] == 1:
+                airbook_prediction = 'Perjalanan anda tepat'
             else:
-                try:
-                    # Lakukan prediksi dengan model (gunakan kode yang sesuai)
-                    prediction = airbooking_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
-                    logging.info("Prediksi berhasil dilakukan.")
+                airbook_prediction = 'Perjalanan anda kurang tepat'
+        except Exception as e:
+            logging.error(f"Terjadi kesalahan saat prediksi: {e}")
+            st.error(f"Terjadi kesalahan saat prediksi: {e}")
 
-                    if prediction[0] == 1:
-                        airbook_prediction = 'Perjalanan anda tepat'
-                    else:
-                        airbook_prediction = 'Perjalanan anda kurang tepat'
-                except Exception as e:
-                    logging.error(f"Terjadi kesalahan saat prediksi: {e}")
-                    st.error(f"Terjadi kesalahan saat prediksi: {e}")
-
-    st.success(airbook_prediction)
+st.success(airbook_prediction)
