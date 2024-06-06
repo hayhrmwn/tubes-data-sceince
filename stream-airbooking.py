@@ -38,8 +38,8 @@ else:
 try:
     with open('xgboost_model.pkl', 'rb') as file:
         airbooking_model = pickle.load(file)
-except Exception as e:
-    st.error(f"Gagal memuat model prediksi: {e}")
+except FileNotFoundError:
+    st.error("Model prediksi tidak tersedia. Silakan latih model atau pastikan file model ada.")
     airbooking_model = None
 
 # Input kolom
