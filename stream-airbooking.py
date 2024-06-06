@@ -1,20 +1,26 @@
+from io import StringIO
+from lib2to3.pgen2.driver import Driver
 import logging
 import pickle
 import pandas as pd  
+import requests
 import streamlit as st 
 import os
-from google.colab import drive
 
-drive.mount('/content/drive')
-data_path = '/content/drive/MyDrive/Dataset/customer_booking.csv'
+csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/blob/main/customer_booking.csv'
 
+airbook_model = requests.get(csv_url)
 
-try:
-    airbooking_model = pd.read_csv(data_path)
-    st.success("File CSV berhasil dibaca!")
-    # Lakukan proses lain dengan data CSV di sini
-except Exception as e:
-    st.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
+if airbook_model.status_code == 200:
+    # Mengubah konten ke dalam DataFrame Pandas
+    try:
+        df = pd.read_csv(StringIO(airbook_model.text))
+        # Tampilkan DataFrame
+        st.write(df)
+    except Exception as e:
+        st.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
+else:
+    st.error(f"Terjadi kesalahan saat mengambil file CSV: {airbook_model.status_code}")
 
 st.title('Prediksi Model Airbooking')
 
