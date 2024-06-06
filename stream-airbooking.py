@@ -7,30 +7,36 @@ import streamlit as st
 
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
 
+# Membaca isi file CSV dari URL
 csv_content = requests.get(csv_url).content
 
 if csv_content:
-    # Try different encodings to read the CSV file
+    # Mencoba beberapa enkoding yang berbeda untuk membaca file CSV
     encodings = ['utf-8', 'latin1']
     for encoding in encodings:
         try:
+            # Membaca file CSV menggunakan enkoding yang sesuai
             airbook_data = pd.read_csv(StringIO(csv_content.decode(encoding)))
-            # If successful, break the loop
+            # Jika berhasil, hentikan loop
             break
         except Exception as e:
-            logging.warning(f"Failed to read CSV with encoding {encoding}: {e}")
+            logging.warning(f"Gagal membaca CSV dengan enkoding {encoding}: {e}")
             airbook_data = None
 else:
-    st.error("Failed to fetch CSV file.")
+    st.error("Gagal mengambil file CSV.")
 
 if airbook_data is None:
-    st.error("Failed to read CSV file with all attempted encodings.")
+    st.error("Gagal membaca file CSV dengan semua enkoding yang dicoba.")
 else:
+    # Menampilkan data CSV jika berhasil dibaca
     st.write(airbook_data)
+
+# Inisialisasi model prediksi (gunakan kode yang sesuai)
+airbooking_model = None
 
 st.title('Prediksi Model Airbooking')
 
-# Membuat kolom input
+# Input kolom
 col1, col2 = st.columns(2)
 
 with col1:
@@ -59,7 +65,7 @@ if st.button('Tes Prediksi'):
             st.error("Model prediksi tidak tersedia.")
         else:
             try:
-                # Melakukan prediksi dengan model
+                # Lakukan prediksi dengan model (gunakan kode yang sesuai)
                 prediction = airbooking_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
                 logging.info("Prediksi berhasil dilakukan.")
 
