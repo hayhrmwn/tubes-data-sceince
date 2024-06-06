@@ -14,6 +14,7 @@ model_path = 'model.pkl'
 airbooking_data = None
 airbooking_model = None
 
+# Memeriksa keberadaan file CSV
 if not os.path.exists(csv_path):
     logging.error(f"File CSV tidak ditemukan: {csv_path}")
     st.error(f"File CSV tidak ditemukan: {csv_path}")
@@ -31,6 +32,7 @@ else:
             logging.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
             st.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
 
+# Memeriksa keberadaan file model
 if not os.path.exists(model_path):
     logging.error(f"File model tidak ditemukan: {model_path}")
     st.error(f"File model tidak ditemukan: {model_path}")
@@ -39,7 +41,7 @@ else:
     try:
         with open(model_path, 'rb') as model_file:
             airbooking_model = pickle.load(model_file)
-            logging.info("Model dimuat dengan sukses.")
+            logging.info(f"Model dimuat dengan sukses dari {model_path}.")
     except Exception as e:
         logging.error(f"Terjadi kesalahan saat memuat model: {e}")
         st.error(f"Terjadi kesalahan saat memuat model: {e}")
