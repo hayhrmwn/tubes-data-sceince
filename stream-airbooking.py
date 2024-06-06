@@ -1,4 +1,4 @@
-from io import StringIO
+from io import BytesIO, StringIO
 import logging
 import joblib
 import pandas as pd  
