@@ -1,26 +1,24 @@
 from io import StringIO
-from lib2to3.pgen2.driver import Driver
 import logging
 import pickle
 import pandas as pd  
 import requests
 import streamlit as st 
-import os
 
-csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/blob/main/customer_booking.csv'
+csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
 
-airbook_model = requests.get(csv_url)
+csv_content = requests.get(csv_url).content
 
-if airbook_model.status_code == 200:
+if csv_content:
     # Mengubah konten ke dalam DataFrame Pandas
     try:
-        df = pd.read_csv(StringIO(airbook_model.text))
+        airbook_data = pd.read_csv(StringIO(csv_content.decode('utf-8')))
         # Tampilkan DataFrame
-        st.write(df)
+        st.write(airbook_data)
     except Exception as e:
         st.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
 else:
-    st.error(f"Terjadi kesalahan saat mengambil file CSV: {airbook_model.status_code}")
+    st.error("Terjadi kesalahan saat mengambil file CSV")
 
 st.title('Prediksi Model Airbooking')
 
@@ -47,20 +45,22 @@ airbook_prediction = ''
 if st.button('Tes Prediksi'):
     if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
         st.error("Semua input harus diisi.")
-    elif airbook_model is None:
-        st.error("Model prediksi tidak tersedia.")
     else:
-        try:
-            # Melakukan prediksi dengan model
-            prediction = airbook_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
-            logging.info("Prediksi berhasil dilakukan.")
+        # Pastikan model sudah dimuat sebelumnya
+        if not airbooking_model:
+            st.error("Model prediksi tidak tersedia.")
+        else:
+            try:
+                # Melakukan prediksi dengan model
+                prediction = airbooking_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
+                logging.info("Prediksi berhasil dilakukan.")
 
-            if prediction[0] == 1:
-                airbook_prediction = 'Perjalanan anda tepat'
-            else:
-                airbook_prediction = 'Perjalanan anda kurang tepat'
-        except Exception as e:
-            logging.error(f"Terjadi kesalahan saat prediksi: {e}")
-            st.error(f"Terjadi kesalahan saat prediksi: {e}")
+                if prediction[0] == 1:
+                    airbook_prediction = 'Perjalanan anda tepat'
+                else:
+                    airbook_prediction = 'Perjalanan anda kurang tepat'
+            except Exception as e:
+                logging.error(f"Terjadi kesalahan saat prediksi: {e}")
+                st.error(f"Terjadi kesalahan saat prediksi: {e}")
 
 st.success(airbook_prediction)
