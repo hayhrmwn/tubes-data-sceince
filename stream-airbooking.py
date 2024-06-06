@@ -1,46 +1,28 @@
+from io import StringIO
 import logging
 import pickle
 import pandas as pd  
+import requests
 import streamlit as st 
-import wget
-import os
 
-# Download the model
-model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/airlines_booking_uas.pkl'
-model_path = 'airlines_booking_uas.pkl'
-
-if not os.path.exists(model_path):
-    try:
-        logging.info("Downloading model...")
-        wget.download(model_url, model_path)
-        logging.info("Model downloaded successfully.")
-    except Exception as e:
-        logging.error(f"Failed to download model: {e}")
-        st.error("Failed to download model.")
-
-# Load the model
-try:
-    with open(model_path, 'rb') as model_file:
-        airbooking_model = pickle.load(model_file)
-    logging.info("Model loaded successfully.")
-except Exception as e:
-    logging.error(f"Failed to load model: {e}")
-    st.error("Failed to load model.")
-
-# URL of the CSV file
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
 
-# Download the CSV file
-try:
-    airbook_data = pd.read_csv(csv_url)
-    logging.info("CSV file loaded successfully.")
-except Exception as e:
-    logging.error(f"Failed to load CSV file: {e}")
-    st.error("Failed to load CSV file.")
+csv_content = requests.get(csv_url).content
 
-st.title('Airbooking Prediction Model')
+if csv_content:
+    # Mengubah konten ke dalam DataFrame Pandas
+    try:
+        airbook_data = pd.read_csv(StringIO(csv_content.decode('utf-8')))
+        # Tampilkan DataFrame
+        st.write(airbook_data)
+    except Exception as e:
+        st.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
+else:
+    st.error("Terjadi kesalahan saat mengambil file CSV")
 
-# Input columns
+st.title('Prediksi Model Airbooking')
+
+# Membuat kolom input
 col1, col2 = st.columns(2)
 
 with col1:
@@ -60,25 +42,25 @@ with col1:
 
 airbook_prediction = ''
 
-if st.button('Test Prediction'):
+if st.button('Tes Prediksi'):
     if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
-        st.error("All inputs must be filled.")
+        st.error("Semua input harus diisi.")
     else:
-        # Ensure the model is loaded
+        # Pastikan model sudah dimuat sebelumnya
         if not airbooking_model:
-            st.error("Prediction model not available.")
+            st.error("Model prediksi tidak tersedia.")
         else:
             try:
-                # Make prediction with the model
+                # Melakukan prediksi dengan model
                 prediction = airbooking_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
-                logging.info("Prediction successful.")
+                logging.info("Prediksi berhasil dilakukan.")
 
                 if prediction[0] == 1:
-                    airbook_prediction = 'Your journey is appropriate'
+                    airbook_prediction = 'Perjalanan anda tepat'
                 else:
-                    airbook_prediction = 'Your journey is less appropriate'
+                    airbook_prediction = 'Perjalanan anda kurang tepat'
             except Exception as e:
-                logging.error(f"Error during prediction: {e}")
-                st.error(f"Error during prediction: {e}")
+                logging.error(f"Terjadi kesalahan saat prediksi: {e}")
+                st.error(f"Terjadi kesalahan saat prediksi: {e}")
 
 st.success(airbook_prediction)
