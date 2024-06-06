@@ -3,8 +3,8 @@ import pickle
 from urllib import request
 import pandas as pd
 import streamlit as st
-import xgboost as xgb
 import os
+import xgboost as xgb  # Pastikan xgboost sudah terinstal
 
 # URL untuk CSV dan Model
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
