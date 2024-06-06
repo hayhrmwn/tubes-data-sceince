@@ -6,7 +6,14 @@ import os
 
 drive.mount('/content/drive')
 data_path = '/content/drive/MyDrive/Dataset/customer_booking.csv'
-airbook_model = pd.read_csv(data_path, encoding='latin1')
+
+
+try:
+    airbooking_model = pd.read_csv(data_path)
+    st.success("File CSV berhasil dibaca!")
+    # Lakukan proses lain dengan data CSV di sini
+except Exception as e:
+    st.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
 
 st.title('Prediksi Model Airbooking')
 
