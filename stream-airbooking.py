@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st 
 import os
 
-airbook_model = pd.read_cvs('customer_booking')
+airbook_model = pd.read_csv('customer_booking')
 
 st.title('Prediksi Model Airbooking')
 
