@@ -97,18 +97,15 @@ if airbooking_model:
         if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
             st.error("Semua input harus diisi.")
         else:
-            # Pastikan model sudah dimuat sebelumnya
-            if not airbooking_model:
-                st.error("Model prediksi tidak tersedia.")
-            else:
-                try:
-                    # Lakukan prediksi dengan model (gunakan kode yang sesuai)
-                    prediction = airbooking_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
-                    logging.info("Prediksi berhasil dilakukan.")
+            try:
+                # Lakukan prediksi dengan model
+                prediction = airbooking_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
+                logging.info("Prediksi berhasil dilakukan.")
 
-                    if prediction[0] == 1:
-                        airbook_prediction = 'Perjalanan anda tepat'
-                    else:
+                if prediction[0] == 1:
+                    airbook_prediction
+
+                else:
                         airbook_prediction = 'Perjalanan anda kurang tepat'
                 except Exception as e:
                     logging.error(f"Terjadi kesalahan saat prediksi: {e}")
