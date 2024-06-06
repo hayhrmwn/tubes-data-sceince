@@ -11,7 +11,8 @@ csv_path = 'customer_booking.csv'
 model_path = '/path/to/your/models/airlines_booking_uas.pkl'
 
 # Memastikan file CSV dan model ada
-airbooking_data = pd.read_csv('customer_booking.csv')
+airbooking_data = pd.read_csv('customer_booking.csv', encoding='latin1')
+
 airbooking_model = None
 
 with open('airlines_booking_uas.pkl', 'rb') as model_file:
