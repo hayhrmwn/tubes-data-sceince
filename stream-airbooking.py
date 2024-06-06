@@ -1,40 +1,42 @@
-from io import StringIO
 import logging
 import pickle
 import pandas as pd  
-import requests
 import streamlit as st 
+import wget
+import os
+
+# Download the model
+model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/airlines_booking_uas.pkl'
+model_path = 'airlines_booking_uas.pkl'
+
+if not os.path.exists(model_path):
+    try:
+        logging.info("Downloading model...")
+        wget.download(model_url, model_path)
+        logging.info("Model downloaded successfully.")
+    except Exception as e:
+        logging.error(f"Failed to download model: {e}")
+        st.error("Failed to download model.")
 
 # Load the model
-model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/airlines_booking_uas.pkl'
-response = requests.get(model_url)
-
-if response.status_code == 200:
-    try:
-        airbooking_model = pickle.loads(response.content)
-        logging.info("Model loaded successfully.")
-    except Exception as e:
-        logging.error(f"Failed to load model: {e}")
-        st.error("Failed to load model.")
-else:
-    logging.error(f"Failed to download model. Status code: {response.status_code}")
-    st.error("Failed to download model.")
+try:
+    with open(model_path, 'rb') as model_file:
+        airbooking_model = pickle.load(model_file)
+    logging.info("Model loaded successfully.")
+except Exception as e:
+    logging.error(f"Failed to load model: {e}")
+    st.error("Failed to load model.")
 
 # URL of the CSV file
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
 
-csv_content = requests.get(csv_url).content
-
-if csv_content:
-    # Convert content to a DataFrame
-    try:
-        airbook_data = pd.read_csv(StringIO(csv_content.decode('utf-8')))
-        # Display DataFrame
-        st.write(airbook_data)
-    except Exception as e:
-        st.error(f"Error reading CSV file: {e}")
-else:
-    st.error("Error fetching CSV file.")
+# Download the CSV file
+try:
+    airbook_data = pd.read_csv(csv_url)
+    logging.info("CSV file loaded successfully.")
+except Exception as e:
+    logging.error(f"Failed to load CSV file: {e}")
+    st.error("Failed to load CSV file.")
 
 st.title('Airbooking Prediction Model')
 
