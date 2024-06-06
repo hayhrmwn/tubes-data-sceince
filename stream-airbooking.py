@@ -5,6 +5,9 @@ import pandas as pd
 import streamlit as st
 import os
 import xgboost as xgb  # Pastikan xgboost sudah terinstal
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import accuracy_score
+
 
 # URL untuk CSV dan Model
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
