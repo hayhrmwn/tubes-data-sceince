@@ -8,29 +8,24 @@ logging.basicConfig(level=logging.INFO)
 
 # Jalur file
 csv_path = 'customer_booking.csv'
-model_path = 'model.pkl'
+model_path = 'airlines_booking_uas.pkl'
 
-# Memastikan file CSV dan model ada
-airbooking_data = None
-airbooking_model = None
+...
 
-# Memeriksa keberadaan file CSV
-if not os.path.exists(csv_path):
-    logging.error(f"File CSV tidak ditemukan: {csv_path}")
-    st.error(f"File CSV tidak ditemukan: {csv_path}")
+# Memeriksa keberadaan file model
+if not os.path.exists(model_path):
+    logging.error(f"File model tidak ditemukan: {model_path}")
+    st.error(f"File model tidak ditemukan: {model_path}")
 else:
-    # Membaca data dari file CSV dengan encoding yang berbeda jika utf-8 gagal
+    # Memuat model prediksi yang disimpan dalam file pickle
     try:
-        airbooking_data = pd.read_csv(csv_path, encoding='utf-8')
-        logging.info("File CSV dibaca dengan sukses dengan encoding utf-8.")
-    except UnicodeDecodeError as e:
-        logging.warning(f"Kesalahan decoding utf-8: {e}")
-        try:
-            airbooking_data = pd.read_csv(csv_path, encoding='latin1')
-            logging.info("File CSV dibaca dengan sukses dengan encoding latin1.")
-        except Exception as e:
-            logging.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
-            st.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
+        with open(model_path, 'rb') as model_file:
+            airbooking_model = pickle.load(model_file)
+            logging.info(f"Model dimuat dengan sukses dari {model_path}.")
+    except Exception as e:
+        logging.error(f"Terjadi kesalahan saat memuat model: {e}")
+        st.error(f"Terjadi kesalahan saat memuat model: {e}")
+
 
 # Memeriksa keberadaan file model
 if not os.path.exists(model_path):
