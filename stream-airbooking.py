@@ -94,4 +94,10 @@ if airbooking_model:
     airbook_prediction = ''
 
     if st.button('Tes Prediksi'):
-        if any(not val for val in [sales_channel, trip_type, 
+        if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
+            st.error("Semua input harus diisi.")
+        else:
+            try:
+                # Lakukan prediksi dengan model
+                prediction = airbooking_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
+                logging.info("Predik
