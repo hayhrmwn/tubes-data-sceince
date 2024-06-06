@@ -1,41 +1,33 @@
-import os
 import pickle
 import pandas as pd  # type: ignore
 import streamlit as st  # type: ignore
-import logging
+import os
 
+# Menambahkan logging
+import logging
 logging.basicConfig(level=logging.INFO)
 
-# Jalur file
+# Memastikan file CSV dan model ada
 csv_path = 'customer_booking.csv'
 model_path = 'model.pkl'
 
-# Memastikan file CSV dan model ada
 if not os.path.exists(csv_path):
     logging.error(f"File CSV tidak ditemukan: {csv_path}")
     st.error(f"File CSV tidak ditemukan: {csv_path}")
 else:
     # Membaca data dari file CSV
-    try:
-        airbooking_data = pd.read_csv(csv_path)
-        logging.info("File CSV dibaca dengan sukses.")
-        print(airbooking_data.head())
-    except Exception as e:
-        logging.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
-        st.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
+    airbooking_data = pd.read_csv(csv_path)
+    logging.info("File CSV dibaca dengan sukses.")
+    print(airbooking_data.head())
 
 if not os.path.exists(model_path):
     logging.error(f"File model tidak ditemukan: {model_path}")
     st.error(f"File model tidak ditemukan: {model_path}")
 else:
     # Memuat model prediksi yang disimpan dalam file pickle
-    try:
-        with open(model_path, 'rb') as model_file:
-            airbooking_model = pickle.load(model_file)
-            logging.info("Model dimuat dengan sukses.")
-    except Exception as e:
-        logging.error(f"Terjadi kesalahan saat memuat model: {e}")
-        st.error(f"Terjadi kesalahan saat memuat model: {e}")
+    with open(model_path, 'rb') as model_file:
+        airbooking_model = pickle.load(model_file)
+        logging.info("Model dimuat dengan sukses.")
 
 st.title('Prediksi Airbooking Analysis')
 
