@@ -1,32 +1,18 @@
 import logging
 import pickle
 from urllib import request
-import pandas as pd
-import streamlit as st
-import os
-import xgboost as xgb  # Pastikan xgboost sudah terinstal
+import pandas as pd 
+import streamlit as st 
 
-# URL untuk CSV dan Model
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
-model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/airlanes_booking_uas.pkl'
+airbook_model = 'https://github.com/hayhrmwn/tubes-data-sceince/blob/main/airlanes_booking_uas.py'
 
-# Download dan baca data CSV
-csv_response = request.urlopen(csv_url)
-df = pd.read_csv(csv_response)
+csv_content = request.get(csv_url).content
+airbook_content = request.get(airbook_model).content
 
-# Download dan load model XGBoost
-model_path = 'airlanes_booking_uas.pkl'
-if not os.path.exists(model_path):
-    model_response = request.urlopen(model_url)
-    with open(model_path, 'wb') as f:
-        f.write(model_response.read())
+st.title ("Prediksi data analysis airbooking ")
 
-with open(model_path, 'rb') as f:
-    model = pickle.load(f)
-
-st.title("Prediksi Data Analysis Airbooking")
-
-col1, col2 = st.columns(2)
+col1, col2 = st.column(2)
 
 with col1:
     sales_channel = st.text_input('Input Sales Channel')
@@ -49,18 +35,22 @@ if st.button('Tes Prediksi'):
     if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
         st.error("Semua input harus diisi.")
     else:
-        try:
-            # Lakukan prediksi dengan model
-            prediction = model.predict(pd.DataFrame([[sales_channel, trip_type, flight_day, route, booking_origin]],
-                                                    columns=['Sales_Channel', 'Trip_Type', 'Flight_Day', 'Route', 'Booking_Origin']))
-            logging.info("Prediksi berhasil dilakukan.")
+        # Pastikan model sudah dimuat sebelumnya
+        if not airbook_model:
+            st.error("Model prediksi tidak tersedia.")
+        else:
+            try:
+                # Lakukan prediksi dengan model (gunakan kode yang sesuai)
+                prediction = airbook_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
+                logging.info("Prediksi berhasil dilakukan.")
 
-            if prediction[0] == 1:
-                airbook_prediction = 'Perjalanan anda tepat'
-            else:
-                airbook_prediction = 'Perjalanan anda kurang tepat'
-        except Exception as e:
-            logging.error(f"Terjadi kesalahan saat prediksi: {e}")
-            st.error(f"Terjadi kesalahan saat prediksi: {e}")
+                if prediction[0] == 1:
+                    airbook_prediction = 'Perjalanan anda tepat'
+                else:
+                    airbook_prediction = 'Perjalanan anda kurang tepat'
+            except Exception as e:
+                logging.error(f"Terjadi kesalahan saat prediksi: {e}")
+                st.error(f"Terjadi kesalahan saat prediksi: {e}")
 
 st.success(airbook_prediction)
+
