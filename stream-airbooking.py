@@ -1,45 +1,42 @@
+from io import StringIO
 import logging
 import pickle
-from urllib import request
-import pandas as pd
-import streamlit as st
+import pandas as pd  
+import requests
+import streamlit as st 
 
-
-# URL untuk CSV dan model
+st.title('Prediksi Model Airbooking')
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
-airbook_model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/airlanes_booking_uas.py'
 
-# Mendeteksi enkoding secara otomatis
-response = request.urlopen(csv_url)
-raw_data = response.read()
+# Membaca isi file CSV dari URL
+csv_content = requests.get(csv_url).content
 
-result = chardet.detect(raw_data)
-encoding = result['encoding']
+if csv_content:
+    # Mencoba beberapa enkoding yang berbeda untuk membaca file CSV
+    encodings = ['utf-8', 'latin1']
+    for encoding in encodings:
+        try:
+            # Membaca file CSV menggunakan enkoding yang sesuai
+            airbook_data = pd.read_csv(StringIO(csv_content.decode(encoding)))
+            # Jika berhasil, hentikan loop
+            break
+        except Exception as e:
+            logging.warning(f"Gagal membaca CSV dengan enkoding {encoding}: {e}")
+            airbook_data = None
+else:
+    st.error("Gagal mengambil file CSV.")
 
-# Logging enkoding yang terdeteksi
-logging.warning(f"Mendeteksi enkoding: {encoding}")
+if airbook_data is None:
+    st.error("Gagal membaca file CSV dengan semua enkoding yang dicoba.")
+else:
+    # Menampilkan data CSV jika berhasil dibaca
+    st.write(airbook_data)
 
-try:
-    # Baca CSV dengan enkoding yang terdeteksi
-    data = pd.read_csv(csv_url, encoding=encoding)
-except Exception as e:
-    logging.error(f"Gagal membaca CSV dengan enkoding {encoding}: {e}")
-    st.error(f"Gagal membaca CSV dengan enkoding {encoding}: {e}")
+# Inisialisasi model prediksi (gunakan kode yang sesuai)
+airbooking_model = None
 
-# Unduh model
-response = request.urlopen(airbook_model_url)
-model_content = response.read()
 
-# Muat model menggunakan pickle
-with open('/tmp/airbook_model.pkl', 'wb') as f:
-    f.write(model_content)
-
-with open('/tmp/airbook_model.pkl', 'rb') as f:
-    airbook_model = pickle.load(f)
-
-# Aplikasi Streamlit
-st.title("Prediksi data analysis airbooking")
-
+# Input kolom
 col1, col2 = st.columns(2)
 
 with col1:
@@ -63,19 +60,21 @@ if st.button('Tes Prediksi'):
     if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
         st.error("Semua input harus diisi.")
     else:
-        try:
-            # Pastikan semua input bertipe string
-            inputs = [sales_channel, trip_type, flight_day, route, booking_origin]
-            # Lakukan prediksi dengan model
-            prediction = airbook_model.predict([inputs])
-            logging.info("Prediksi berhasil dilakukan.")
+        # Pastikan model sudah dimuat sebelumnya
+        if not airbooking_model:
+            st.error("Model prediksi tidak tersedia.")
+        else:
+            try:
+                # Lakukan prediksi dengan model (gunakan kode yang sesuai)
+                prediction = airbooking_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
+                logging.info("Prediksi berhasil dilakukan.")
 
-            if prediction[0] == 1:
-                airbook_prediction = 'Perjalanan anda tepat'
-            else:
-                airbook_prediction = 'Perjalanan anda kurang tepat'
-        except Exception as e:
-            logging.error(f"Terjadi kesalahan saat prediksi: {e}")
-            st.error(f"Terjadi kesalahan saat prediksi: {e}")
+                if prediction[0] == 1:
+                    airbook_prediction = 'Perjalanan anda tepat'
+                else:
+                    airbook_prediction = 'Perjalanan anda kurang tepat'
+            except Exception as e:
+                logging.error(f"Terjadi kesalahan saat prediksi: {e}")
+                st.error(f"Terjadi kesalahan saat prediksi: {e}")
 
 st.success(airbook_prediction)
