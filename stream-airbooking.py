@@ -1,36 +1,39 @@
 import streamlit as st
 import pandas as pd
 import requests
-from io import StringIO
 import logging
+import chardet
+from io import BytesIO
 
 st.title('Prediksi Model Airbooking')
 
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
 
-# Function to read CSV with different encodings
-def read_csv_with_encodings(url, encodings):
-    for encoding in encodings:
-        try:
-            csv_content = requests.get(url).content
-            df = pd.read_csv(StringIO(csv_content.decode(encoding)))
-            return df
-        except Exception as e:
-            logging.warning(f"Gagal membaca CSV dengan enkoding {encoding}: {e}")
-    return None
+def detect_encoding(url):
+    response = requests.get(url)
+    rawdata = response.content
+    result = chardet.detect(rawdata)
+    return result['encoding'], rawdata
 
-# List of encodings to try
-encodings = ['utf-8', 'latin1', 'iso-8859-1', 'cp1252']
-airbook_data = read_csv_with_encodings(csv_url, encodings)
+encoding, rawdata = detect_encoding(csv_url)
 
-if airbook_data is None:
-    st.error("Gagal membaca file CSV dengan semua enkoding yang dicoba.")
+if encoding:
+    try:
+        airbook_data = pd.read_csv(BytesIO(rawdata), encoding=encoding)
+    except Exception as e:
+        st.error(f"Gagal membaca file CSV dengan encoding {encoding}: {e}")
+        airbook_data = None
 else:
-    # Menampilkan data CSV jika berhasil dibaca
+    st.error("Gagal mendeteksi encoding file CSV.")
+    airbook_data = None
+
+if airbook_data is not None:
     st.write(airbook_data)
+else:
+    st.error("Gagal membaca file CSV.")
 
 # Inisialisasi model prediksi (gunakan kode yang sesuai)
-airbooking_model = None  # Replace with actual model loading code
+airbooking_model = None  # Ganti dengan kode untuk memuat model sebenarnya
 
 # Input kolom
 col1, col2 = st.columns(2)
