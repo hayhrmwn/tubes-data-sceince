@@ -1,30 +1,27 @@
+import streamlit as st
+import pandas as pd
+import requests
 from io import StringIO
 import logging
-import pickle
-import pandas as pd  
-import requests
-import streamlit as st 
 
 st.title('Prediksi Model Airbooking')
+
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
 
-# Membaca isi file CSV dari URL
-csv_content = requests.get(csv_url).content
-
-if csv_content:
-    # Mencoba beberapa enkoding yang berbeda untuk membaca file CSV
-    encodings = ['utf-8', 'latin1']
+# Function to read CSV with different encodings
+def read_csv_with_encodings(url, encodings):
     for encoding in encodings:
         try:
-            # Membaca file CSV menggunakan enkoding yang sesuai
-            airbook_data = pd.read_csv(StringIO(csv_content.decode(encoding)))
-            # Jika berhasil, hentikan loop
-            break
+            csv_content = requests.get(url).content
+            df = pd.read_csv(StringIO(csv_content.decode(encoding)))
+            return df
         except Exception as e:
             logging.warning(f"Gagal membaca CSV dengan enkoding {encoding}: {e}")
-            airbook_data = None
-else:
-    st.error("Gagal mengambil file CSV.")
+    return None
+
+# List of encodings to try
+encodings = ['utf-8', 'latin1', 'iso-8859-1', 'cp1252']
+airbook_data = read_csv_with_encodings(csv_url, encodings)
 
 if airbook_data is None:
     st.error("Gagal membaca file CSV dengan semua enkoding yang dicoba.")
@@ -33,8 +30,7 @@ else:
     st.write(airbook_data)
 
 # Inisialisasi model prediksi (gunakan kode yang sesuai)
-airbooking_model = None
-
+airbooking_model = None  # Replace with actual model loading code
 
 # Input kolom
 col1, col2 = st.columns(2)
