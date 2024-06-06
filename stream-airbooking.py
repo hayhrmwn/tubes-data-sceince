@@ -1,14 +1,14 @@
 import os
-import airlines_booking_uas  # Mengimpor modul airlines_booking_uas
-import pandas as pd
-import streamlit as st
+import pandas as pd  # type: ignore
+import streamlit as st  # type: ignore
 import logging
+
 
 logging.basicConfig(level=logging.INFO)
 
 # Jalur file
 csv_path = 'customer_booking.csv'
-model_path = 'airlines_booking_uas'  # Nama modul, bukan path file
+model_path = 'airlines_booking_uas'
 
 # Memastikan file CSV dan model ada
 airbooking_data = None
@@ -19,8 +19,29 @@ if not os.path.exists(model_path):
     logging.error(f"File model tidak ditemukan: {model_path}")
     st.error(f"File model tidak ditemukan: {model_path}")
 else:
-    # Mengakses objek model dari modul airlines_booking_uas
-    airbooking_model = airlines_booking_uas.model
+    # Memuat model prediksi yang disimpan dalam file pickle
+    try:
+        with open(model_path, 'rb') as model_file:
+            airbooking_model = pickle.load(model_file)
+            logging.info(f"Model dimuat dengan sukses dari {model_path}.")
+    except Exception as e:
+        logging.error(f"Terjadi kesalahan saat memuat model: {e}")
+        st.error(f"Terjadi kesalahan saat memuat model: {e}")
+
+
+# Memeriksa keberadaan file model
+if not os.path.exists(model_path):
+    logging.error(f"File model tidak ditemukan: {model_path}")
+    st.error(f"File model tidak ditemukan: {model_path}")
+else:
+    # Memuat model prediksi yang disimpan dalam file pickle
+    try:
+        with open(model_path, 'rb') as model_file:
+            airbooking_model = pickle.load(model_file)
+            logging.info(f"Model dimuat dengan sukses dari {model_path}.")
+    except Exception as e:
+        logging.error(f"Terjadi kesalahan saat memuat model: {e}")
+        st.error(f"Terjadi kesalahan saat memuat model: {e}")
 
 st.title('Prediksi Airbooking Analysis')
 
