@@ -1,8 +1,9 @@
 import logging
 import pickle
 from urllib import request
-import pandas as pd 
-import streamlit as st 
+import pandas as pd
+import streamlit as st
+import io  # Importing io for StringIO
 
 # URL for the CSV and the model
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
@@ -13,7 +14,7 @@ response = request.urlopen(csv_url)
 csv_content = response.read()
 
 # Load the CSV into a pandas DataFrame
-data = pd.read_csv(pd.compat.StringIO(csv_content.decode('utf-8')))
+data = pd.read_csv(io.StringIO(csv_content.decode('utf-8')))  # Use io.StringIO
 
 # Download the model
 response = request.urlopen(airbook_model_url)
@@ -53,8 +54,10 @@ if st.button('Tes Prediksi'):
         st.error("Semua input harus diisi.")
     else:
         try:
-            # Lakukan prediksi dengan model
-            prediction = airbook_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
+            # Ensure all inputs are of string type
+            inputs = [sales_channel, trip_type, flight_day, route, booking_origin]
+            # Perform prediction with the model
+            prediction = airbook_model.predict([inputs])
             logging.info("Prediksi berhasil dilakukan.")
 
             if prediction[0] == 1:
