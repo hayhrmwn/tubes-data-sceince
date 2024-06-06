@@ -1,5 +1,4 @@
 import os
-import pickle
 import pandas as pd  # type: ignore
 import streamlit as st  # type: ignore
 import logging
@@ -9,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 
 # Jalur file
 csv_path = 'customer_booking.csv'
-model_path = 'airlines_booking_uas.py'
+model_path = 'airlines_booking_uas'
 
 # Memastikan file CSV dan model ada
 airbooking_data = None
