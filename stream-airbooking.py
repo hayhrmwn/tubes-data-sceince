@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st 
 import os
 
-drive.mount('/content/drive')
+Drive.mount('/content/drive')
 data_path = '/content/drive/MyDrive/Dataset/customer_booking.csv'
 airbook_model = pd.read_csv(data_path, encoding='latin1')
 
