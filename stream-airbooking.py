@@ -5,8 +5,8 @@ import pandas as pd
 import streamlit as st
 import os
 import xgboost as xgb  # Pastikan xgboost sudah terinstal
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split, cross_val_score # type: ignore
+from sklearn.metrics import accuracy_score # type: ignore
 
 
 # URL untuk CSV dan Model
