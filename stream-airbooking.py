@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 
 # Jalur file
 csv_path = 'customer_booking.csv'
-model_path = 'model.pkl'
+model_path = 'airlines_booking_uas.model'
 
 # Memastikan file CSV dan model ada
 airbooking_data = None
