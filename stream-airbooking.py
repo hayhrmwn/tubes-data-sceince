@@ -8,12 +8,16 @@ logging.basicConfig(level=logging.INFO)
 
 # Jalur file
 csv_path = 'customer_booking.csv'
-model_path = 'model.pkl'
+model_path = 'model_path = '/path/to/your/models/airlines_booking_uas.pkl'
+'
 
 # Memastikan file CSV dan model ada
-airbooking_data = None
+airbooking_data = pd.read_csv('customer_booking.csv')
 airbooking_model = None
 
+with open('airlines_booking_uas.pkl', 'rb') as model_file:
+    airbooking_model = pickle.load(model_file)
+    
 # Memeriksa keberadaan file CSV
 if not os.path.exists(csv_path):
     logging.error(f"File CSV tidak ditemukan: {csv_path}")
