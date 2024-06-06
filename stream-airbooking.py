@@ -3,6 +3,7 @@ import pickle
 import pandas as pd  
 import streamlit as st 
 import os
+from google.colab import drive
 
 drive.mount('/content/drive')
 data_path = '/content/drive/MyDrive/Dataset/customer_booking.csv'
