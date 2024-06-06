@@ -1,7 +1,7 @@
 import os
 import pickle
-import pandas as pd
-import streamlit as st
+import pandas as pd  # type: ignore
+import streamlit as st  # type: ignore
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -10,12 +10,16 @@ logging.basicConfig(level=logging.INFO)
 csv_path = 'customer_booking.csv'
 model_path = 'model.pkl'
 
-# Memastikan file CSV ada
+# Memastikan file CSV dan model ada
+airbooking_data = None
+airbooking_model = None
+
+# Memeriksa keberadaan file CSV
 if not os.path.exists(csv_path):
     logging.error(f"File CSV tidak ditemukan: {csv_path}")
     st.error(f"File CSV tidak ditemukan: {csv_path}")
 else:
-    # Membaca data dari file CSV
+    # Membaca data dari file CSV dengan encoding yang berbeda jika utf-8 gagal
     try:
         airbooking_data = pd.read_csv(csv_path, encoding='utf-8')
         logging.info("File CSV dibaca dengan sukses dengan encoding utf-8.")
@@ -28,36 +32,19 @@ else:
             logging.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
             st.error(f"Terjadi kesalahan saat membaca file CSV: {e}")
 
-# Memastikan file model ada
+# Memeriksa keberadaan file model
 if not os.path.exists(model_path):
     logging.error(f"File model tidak ditemukan: {model_path}")
     st.error(f"File model tidak ditemukan: {model_path}")
 else:
-    # Memuat model prediksi dari file pickle
+    # Memuat model prediksi yang disimpan dalam file pickle
     try:
         with open(model_path, 'rb') as model_file:
             airbooking_model = pickle.load(model_file)
             logging.info(f"Model dimuat dengan sukses dari {model_path}.")
     except Exception as e:
-        logging.error(f"Terjadi kesalahan saat memuat model dari file pickle: {e}")
-        st.error(f"Terjadi kesalahan saat memuat model dari file pickle: {e}")
-        airbooking_model = None
-
-# Jika model tidak tersedia dari file pickle, coba memuat dari file Python
-if airbooking_model is None:
-    model_path = 'airlanes_booking_uas.py'
-    if not os.path.exists(model_path):
-        logging.error(f"File model tidak ditemukan: {model_path}")
-        st.error(f"File model tidak ditemukan: {model_path}")
-    else:
-        # Mengimpor model prediksi yang disimpan dalam file Python
-        try:
-            from airlanes_booking_uas import model as airbooking_model
-            logging.info(f"Model dimuat dengan sukses dari {model_path}.")
-        except Exception as e:
-            logging.error(f"Terjadi kesalahan saat memuat model dari file Python: {e}")
-            st.error(f"Terjadi kesalahan saat memuat model dari file Python: {e}")
-            airbooking_model = None
+        logging.error(f"Terjadi kesalahan saat memuat model: {e}")
+        st.error(f"Terjadi kesalahan saat memuat model: {e}")
 
 st.title('Prediksi Airbooking Analysis')
 
