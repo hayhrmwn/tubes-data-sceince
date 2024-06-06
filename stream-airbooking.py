@@ -4,7 +4,9 @@ import pandas as pd
 import streamlit as st 
 import os
 
-airbook_model = pd.read_csv('customer_booking')
+drive.mount('/content/drive')
+data_path = '/content/drive/MyDrive/Dataset/customer_booking.csv'
+airbook_model = pd.read_csv(data_path, encoding='latin1')
 
 st.title('Prediksi Model Airbooking')
 
