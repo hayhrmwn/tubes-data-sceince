@@ -4,6 +4,8 @@ import requests
 import logging
 import chardet
 from io import BytesIO
+import pickle
+import xgboost as xgb
 
 st.title('Prediksi Model Airbooking')
 
@@ -32,8 +34,13 @@ if airbook_data is not None:
 else:
     st.error("Gagal membaca file CSV.")
 
-# Inisialisasi model prediksi (gunakan kode yang sesuai)
-airbooking_model = None  # Ganti dengan kode untuk memuat model sebenarnya
+# Memuat model prediksi dari file
+try:
+    with open('xgboost_model.pkl', 'rb') as file:
+        airbooking_model = pickle.load(file)
+except Exception as e:
+    st.error(f"Gagal memuat model prediksi: {e}")
+    airbooking_model = None
 
 # Input kolom
 col1, col2 = st.columns(2)
@@ -59,13 +66,14 @@ if st.button('Tes Prediksi'):
     if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
         st.error("Semua input harus diisi.")
     else:
-        # Pastikan model sudah dimuat sebelumnya
         if not airbooking_model:
             st.error("Model prediksi tidak tersedia.")
         else:
             try:
-                # Lakukan prediksi dengan model (gunakan kode yang sesuai)
-                prediction = airbooking_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])
+                # Lakukan prediksi dengan model
+                input_data = pd.DataFrame([[sales_channel, trip_type, flight_day, route, booking_origin]], 
+                                          columns=['Sales Channel', 'Trip Type', 'Flight Day', 'Route', 'Booking Origin'])
+                prediction = airbooking_model.predict(input_data)
                 logging.info("Prediksi berhasil dilakukan.")
 
                 if prediction[0] == 1:
