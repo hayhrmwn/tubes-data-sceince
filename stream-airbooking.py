@@ -3,6 +3,7 @@ import pickle
 import pandas as pd  # type: ignore
 import streamlit as st  # type: ignore
 import logging
+import airlines_booking_uas
 
 logging.basicConfig(level=logging.INFO)
 
@@ -12,7 +13,7 @@ model_path = 'model.pkl'
 
 # Memastikan file CSV dan model ada
 airbooking_data = None
-airbooking_model = None
+airbooking_model = airlines_booking_uas.model
 
 # Memeriksa keberadaan file CSV
 if not os.path.exists(csv_path):
