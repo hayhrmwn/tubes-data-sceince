@@ -115,4 +115,4 @@ if st.button('Tes Prediksi'):
             logging.error(f"Terjadi kesalahan saat prediksi: {e}")
             st.error(f"Terjadi kesalahan saat prediksi: {e}")
 
-st.success(airbook_prediction
+st.success(airbook_prediction)
