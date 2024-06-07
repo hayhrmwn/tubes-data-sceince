@@ -10,7 +10,7 @@ import xgboost as xgb
 st.title('Prediksi Model Airbooking')
 
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
-model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/xgb_model.pkl'
+model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/blob/main/airlanes_booking_uas.py'
 
 def detect_encoding(url):
     response = requests.get(url)
