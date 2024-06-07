@@ -107,12 +107,12 @@ if st.button('Tes Prediksi'):
             combined_prediction = (xgb_prediction + lgb_prediction + ada_prediction) / 3
 
             if combined_prediction >= 0.5:
-                airbook_prediction = 'Perjalanan anda tepat'
+                airbook_prediction = 'Yes'
             else:
-                airbook_prediction = 'Perjalanan anda kurang tepat'
+                airbook_prediction = 'No'
+
+            st.success(f'Prediksi: {airbook_prediction}')
 
         except Exception as e:
             logging.error(f"Terjadi kesalahan saat prediksi: {e}")
             st.error(f"Terjadi kesalahan saat prediksi: {e}")
-
-st.success(airbook_prediction)
