@@ -61,32 +61,6 @@ def predict_airbooking(xgb_model, lgb_model, ada_model, sales_channel, trip_type
         else:
             return 'Perjalanan anda kurang tepat'
 
-def input_form():
-    # Input kolom
-    col1, col2 = st.columns(2)
-
-    with col1:
-        sales_channel = st.text_input('Input Sales Channel')
-
-    with col2:
-        trip_type = st.text_input('Input Trip Type')
-
-    with col1:
-        flight_day = st.text_input('Input Flight Day')
-
-    with col2:
-        route = st.text_input('Input Route')
-
-    with col1:
-        booking_origin = st.text_input('Input Booking Origin')
-
-    return sales_channel, trip_type, flight_day, route, booking_origin
-
-def predict_button():
-    if st.button('Tes Prediksi'):
-        return True
-    return False
-
 encoding, rawdata = detect_encoding(csv_url)
 
 if encoding:
@@ -108,9 +82,27 @@ xgb_model = load_model(xgb_model_url)
 lgb_model = load_model(lgb_model_url)
 ada_model = load_model(ada_model_url)
 
-sales_channel, trip_type, flight_day, route, booking_origin = input_form()
+# Input kolom
+col1, col2 = st.columns(2)
 
-if predict_button():
+with col1:
+    sales_channel = st.text_input('Input Sales Channel')
+
+with col2:
+    trip_type = st.text_input('Input Trip Type')
+
+with col1:
+    flight_day = st.text_input('Input Flight Day')
+
+with col2:
+    route = st.text_input('Input Route')
+
+with col1:
+    booking_origin = st.text_input('Input Booking Origin')
+
+airbook_prediction = ''
+
+if st.button('Tes Prediksi'):
     if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
         st.error("Semua input harus diisi.")
     else:
