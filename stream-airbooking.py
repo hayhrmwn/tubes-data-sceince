@@ -95,8 +95,7 @@ if st.button('Tes Prediksi'):
             input_data = preprocess_input(input_data)
             logging.info(f"Input data for prediction: {input_data}")
 
-            dmatrix = xgb.DMatrix(input_data, enable_categorical=True)
-            xgb_prediction = xgb_model.predict(dmatrix)[0]
+            xgb_prediction = xgb_model.predict(input_data)[0]
 
             # Lakukan prediksi dengan model LightGBM
             lgb_prediction = lgb_model.predict(input_data)[0]
