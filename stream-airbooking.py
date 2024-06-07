@@ -10,6 +10,7 @@ import xgboost as xgb
 st.title('Prediksi Model Airbooking')
 
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
+model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/xgb_model.pkl'
 
 def detect_encoding(url):
     response = requests.get(url)
@@ -34,13 +35,15 @@ if airbook_data is not None:
 else:
     st.error("Gagal membaca file CSV.")
 
-# Memuat model prediksi dari file
+# Unduh dan muat model prediksi dari URL
 try:
+    model_response = requests.get(model_url)
+    model_response.raise_for_status()  # Raise an exception for HTTP errors
+    with open('xgb_model.pkl', 'wb') as f:
+        f.write(model_response.content)
     with open('xgb_model.pkl', 'rb') as file:
         airbooking_model = pickle.load(file)
-except FileNotFoundError:
-    st.error("Model prediksi tidak tersedia. Silakan latih model atau pastikan file model ada.")
-    airbooking_model = None
+    logging.info("Model prediksi berhasil dimuat.")
 except Exception as e:
     st.error(f"Gagal memuat model prediksi: {e}")
     airbooking_model = None
@@ -76,6 +79,7 @@ if st.button('Tes Prediksi'):
                 # Lakukan prediksi dengan model
                 input_data = pd.DataFrame([[sales_channel, trip_type, flight_day, route, booking_origin]], 
                                           columns=['Sales Channel', 'Trip Type', 'Flight Day', 'Route', 'Booking Origin'])
+                logging.info(f"Input data for prediction: {input_data}")
                 prediction = airbooking_model.predict(input_data)
                 logging.info("Prediksi berhasil dilakukan.")
 
