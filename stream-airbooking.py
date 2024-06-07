@@ -13,8 +13,8 @@ st.title('Prediksi Model Airbooking')
 
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
 xgb_model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/xgb_model.pkl'
-lgb_model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/blob/main/lgb_model.pkl'
-ada_model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/blob/main/ada_model.pkl'
+lgb_model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/lgb_model.pkl'
+ada_model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/ada_model.pkl'
 
 def detect_encoding(url):
     response = requests.get(url)
