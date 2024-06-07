@@ -22,6 +22,45 @@ def detect_encoding(url):
     result = chardet.detect(rawdata)
     return result['encoding'], rawdata
 
+def load_model(model_url):
+    try:
+        model_response = requests.get(model_url)
+        model_response.raise_for_status()  # Raise an exception for HTTP errors
+        with open('model.pkl', 'wb') as f:
+            f.write(model_response.content)
+        with open('model.pkl', 'rb') as file:
+            model = pickle.load(file)
+        logging.info("Model prediksi berhasil dimuat.")
+        return model
+    except Exception as e:
+        st.error(f"Gagal memuat model prediksi: {e}")
+        return None
+
+def preprocess_input(data):
+    # Mengonversi kolom object menjadi kategori
+    for column in data.columns:
+        data[column] = data[column].astype('category')
+    return data
+
+def predict_airbooking(xgb_model, lgb_model, ada_model, sales_channel, trip_type, flight_day, route, booking_origin):
+    try:
+        # Lakukan prediksi dengan model XGBoost
+        xgb_prediction = xgb_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])[0]
+
+        # Lakukan prediksi dengan model LightGBM
+        lgb_prediction = lgb_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])[0]
+
+        # Lakukan prediksi dengan model AdaBoost
+        ada_prediction = ada_model.predict([[sales_channel, trip_type, flight_day, route, booking_origin]])[0]
+
+        # Gabungkan prediksi dari semua model
+        combined_prediction = (xgb_prediction + lgb_prediction + ada_prediction) / 3
+
+        if combined_prediction >= 0.5:
+            return 'Perjalanan anda tepat'
+        else:
+            return 'Perjalanan anda kurang tepat'
+
 encoding, rawdata = detect_encoding(csv_url)
 
 if encoding:
@@ -38,21 +77,6 @@ if airbook_data is not None:
     st.write(airbook_data)
 else:
     st.error("Gagal membaca file CSV.")
-
-# Unduh dan muat model prediksi dari URL
-def load_model(model_url):
-    try:
-        model_response = requests.get(model_url)
-        model_response.raise_for_status()  # Raise an exception for HTTP errors
-        with open('model.pkl', 'wb') as f:
-            f.write(model_response.content)
-        with open('model.pkl', 'rb') as file:
-            model = pickle.load(file)
-        logging.info("Model prediksi berhasil dimuat.")
-        return model
-    except Exception as e:
-        st.error(f"Gagal memuat model prediksi: {e}")
-        return None
 
 xgb_model = load_model(xgb_model_url)
 lgb_model = load_model(lgb_model_url)
@@ -78,38 +102,17 @@ with col1:
 
 airbook_prediction = ''
 
-def preprocess_input(data):
-    # Mengonversi kolom object menjadi kategori
-    for column in data.columns:
-        data[column] = data[column].astype('category')
-    return data
-
 if st.button('Tes Prediksi'):
     if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
         st.error("Semua input harus diisi.")
     else:
         try:
-            # Lakukan prediksi dengan model XGBoost
             input_data = pd.DataFrame([[sales_channel, trip_type, flight_day, route, booking_origin]], 
                                       columns=['Sales Channel', 'Trip Type', 'Flight Day', 'Route', 'Booking Origin'])
             input_data = preprocess_input(input_data)
             logging.info(f"Input data for prediction: {input_data}")
 
-            xgb_prediction = xgb_model.predict(input_data)[0]
-
-            # Lakukan prediksi dengan model LightGBM
-            lgb_prediction = lgb_model.predict(input_data)[0]
-
-            # Lakukan prediksi dengan model AdaBoost
-            ada_prediction = ada_model.predict(input_data)[0]
-
-            # Gabungkan prediksi dari semua model
-            combined_prediction = (xgb_prediction + lgb_prediction + ada_prediction) / 3
-
-            if combined_prediction >= 0.5:
-                airbook_prediction = 'Perjalanan anda tepat'
-            else:
-                airbook_prediction = 'Perjalanan anda kurang tepat'
+            airbook_prediction = predict_airbooking(xgb_model, lgb_model, ada_model, sales_channel, trip_type, flight_day, route, booking_origin)
 
         except Exception as e:
             logging.error(f"Terjadi kesalahan saat prediksi: {e}")
