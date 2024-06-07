@@ -6,11 +6,15 @@ import chardet
 from io import BytesIO
 import pickle
 import xgboost as xgb
+import lightgbm as lgb
+from sklearn.ensemble import AdaBoostClassifier
 
 st.title('Prediksi Model Airbooking')
 
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
-model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/xgb_model.pkl'  # URL raw file pickle
+xgb_model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/xgb_model.pkl'
+lgb_model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/blob/main/lgb_model.pkl'
+ada_model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/blob/main/ada_model.pkl'
 
 def detect_encoding(url):
     response = requests.get(url)
@@ -36,17 +40,23 @@ else:
     st.error("Gagal membaca file CSV.")
 
 # Unduh dan muat model prediksi dari URL
-try:
-    model_response = requests.get(model_url)
-    model_response.raise_for_status()  # Raise an exception for HTTP errors
-    with open('xgb_model.pkl', 'wb') as f:
-        f.write(model_response.content)
-    with open('xgb_model.pkl', 'rb') as file:
-        airbooking_model = pickle.load(file)
-    logging.info("Model prediksi berhasil dimuat.")
-except Exception as e:
-    st.error(f"Gagal memuat model prediksi: {e}")
-    airbooking_model = None
+def load_model(model_url):
+    try:
+        model_response = requests.get(model_url)
+        model_response.raise_for_status()  # Raise an exception for HTTP errors
+        with open('model.pkl', 'wb') as f:
+            f.write(model_response.content)
+        with open('model.pkl', 'rb') as file:
+            model = pickle.load(file)
+        logging.info("Model prediksi berhasil dimuat.")
+        return model
+    except Exception as e:
+        st.error(f"Gagal memuat model prediksi: {e}")
+        return None
+
+xgb_model = load_model(xgb_model_url)
+lgb_model = load_model(lgb_model_url)
+ada_model = load_model(ada_model_url)
 
 # Input kolom
 col1, col2 = st.columns(2)
@@ -78,26 +88,32 @@ if st.button('Tes Prediksi'):
     if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
         st.error("Semua input harus diisi.")
     else:
-        if not airbooking_model:
-            st.error("Model prediksi tidak tersedia.")
-        else:
-            try:
-                # Lakukan prediksi dengan model
-                input_data = pd.DataFrame([[sales_channel, trip_type, flight_day, route, booking_origin]], 
-                                          columns=['Sales Channel', 'Trip Type', 'Flight Day', 'Route', 'Booking Origin'])
-                input_data = preprocess_input(input_data)
-                logging.info(f"Input data for prediction: {input_data}")
+        try:
+            # Lakukan prediksi dengan model XGBoost
+            input_data = pd.DataFrame([[sales_channel, trip_type, flight_day, route, booking_origin]], 
+                                      columns=['Sales Channel', 'Trip Type', 'Flight Day', 'Route', 'Booking Origin'])
+            input_data = preprocess_input(input_data)
+            logging.info(f"Input data for prediction: {input_data}")
 
-                dmatrix = xgb.DMatrix(input_data, enable_categorical=True)
-                prediction = airbooking_model.predict(dmatrix)
-                logging.info("Prediksi berhasil dilakukan.")
+            dmatrix = xgb.DMatrix(input_data, enable_categorical=True)
+            xgb_prediction = xgb_model.predict(dmatrix)[0]
 
-                if prediction[0] == 1:
-                    airbook_prediction = 'Perjalanan anda tepat'
-                else:
-                    airbook_prediction = 'Perjalanan anda kurang tepat'
-            except Exception as e:
-                logging.error(f"Terjadi kesalahan saat prediksi: {e}")
-                st.error(f"Terjadi kesalahan saat prediksi: {e}")
+            # Lakukan prediksi dengan model LightGBM
+            lgb_prediction = lgb_model.predict(input_data)[0]
+
+            # Lakukan prediksi dengan model AdaBoost
+            ada_prediction = ada_model.predict(input_data)[0]
+
+            # Gabungkan prediksi dari semua model
+            combined_prediction = (xgb_prediction + lgb_prediction + ada_prediction) / 3
+
+            if combined_prediction >= 0.5:
+                airbook_prediction = 'Perjalanan anda tepat'
+            else:
+                airbook_prediction = 'Perjalanan anda kurang tepat'
+
+        except Exception as e:
+            logging.error(f"Terjadi kesalahan saat prediksi: {e}")
+            st.error(f"Terjadi kesalahan saat prediksi: {e}")
 
 st.success(airbook_prediction)
