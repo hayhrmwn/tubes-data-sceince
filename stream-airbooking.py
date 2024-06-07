@@ -69,18 +69,9 @@ with col1:
 airbook_prediction = ''
 
 def preprocess_input(data):
-    # Mengonversi input ke tipe data numerik yang sesuai
-    # Anda dapat menyesuaikan ini sesuai dengan representasi numerik dari input yang sesuai
-    mapping = {
-        'Sales Channel': {'Online': 0, 'Offline': 1},  # Contoh konversi
-        'Trip Type': {'One Way': 0, 'Round Trip': 1},  # Contoh konversi
-        # Tambahkan mapping sesuai kebutuhan
-    }
-    
+    # Mengonversi kolom object menjadi kategori
     for column in data.columns:
-        if column in mapping:
-            data[column] = data[column].map(mapping[column])
-    
+        data[column] = data[column].astype('category')
     return data
 
 if st.button('Tes Prediksi'):
@@ -96,7 +87,9 @@ if st.button('Tes Prediksi'):
                                           columns=['Sales Channel', 'Trip Type', 'Flight Day', 'Route', 'Booking Origin'])
                 input_data = preprocess_input(input_data)
                 logging.info(f"Input data for prediction: {input_data}")
-                prediction = airbooking_model.predict(input_data)
+
+                dmatrix = xgb.DMatrix(input_data, enable_categorical=True)
+                prediction = airbooking_model.predict(dmatrix)
                 logging.info("Prediksi berhasil dilakukan.")
 
                 if prediction[0] == 1:
