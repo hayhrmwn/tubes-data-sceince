@@ -82,7 +82,19 @@ def preprocess_input(data):
     # Mengonversi kolom object menjadi kategori
     for column in data.columns:
         data[column] = data[column].astype('category')
-    return data
+    
+    # Lakukan encoding pada data input
+    data_encoded = pd.get_dummies(data)
+    
+    # Menambahkan kolom yang hilang dengan nilai 0
+    for col in model_feature_names:
+        if col not in data_encoded.columns:
+            data_encoded[col] = 0
+    
+    # Sesuaikan urutan kolom dengan yang digunakan oleh model
+    data_encoded = data_encoded[model_feature_names]
+    
+    return data_encoded
 
 if st.button('Tes Prediksi'):
     if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
@@ -91,11 +103,11 @@ if st.button('Tes Prediksi'):
         try:
             # Lakukan prediksi dengan model XGBoost
             input_data = pd.DataFrame([[sales_channel, trip_type, flight_day, route, booking_origin]], 
-                                      columns=['Sales Channel', 'Trip Type', 'Flight Day', 'Route', 'Booking Origin'])
+                                      columns=['sales_channel', 'trip_type', 'flight_day', 'route', 'booking_origin'])
             input_data = preprocess_input(input_data)
             logging.info(f"Input data for prediction: {input_data}")
 
-            xgb_prediction = xgb_model.predict(input_data)[0]
+            xgb_prediction = xgb_model.predict(xgb.DMatrix(input_data))[0]
 
             # Lakukan prediksi dengan model LightGBM
             lgb_prediction = lgb_model.predict(input_data)[0]
