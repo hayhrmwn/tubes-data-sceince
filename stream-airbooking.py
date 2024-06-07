@@ -68,6 +68,21 @@ with col1:
 
 airbook_prediction = ''
 
+def preprocess_input(data):
+    # Mengonversi input ke tipe data numerik yang sesuai
+    # Anda dapat menyesuaikan ini sesuai dengan representasi numerik dari input yang sesuai
+    mapping = {
+        'Sales Channel': {'Online': 0, 'Offline': 1},  # Contoh konversi
+        'Trip Type': {'One Way': 0, 'Round Trip': 1},  # Contoh konversi
+        # Tambahkan mapping sesuai kebutuhan
+    }
+    
+    for column in data.columns:
+        if column in mapping:
+            data[column] = data[column].map(mapping[column])
+    
+    return data
+
 if st.button('Tes Prediksi'):
     if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
         st.error("Semua input harus diisi.")
@@ -79,6 +94,7 @@ if st.button('Tes Prediksi'):
                 # Lakukan prediksi dengan model
                 input_data = pd.DataFrame([[sales_channel, trip_type, flight_day, route, booking_origin]], 
                                           columns=['Sales Channel', 'Trip Type', 'Flight Day', 'Route', 'Booking Origin'])
+                input_data = preprocess_input(input_data)
                 logging.info(f"Input data for prediction: {input_data}")
                 prediction = airbooking_model.predict(input_data)
                 logging.info("Prediksi berhasil dilakukan.")
