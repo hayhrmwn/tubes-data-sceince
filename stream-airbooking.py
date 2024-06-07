@@ -88,8 +88,8 @@ if st.button('Tes Prediksi'):
                 input_data = preprocess_input(input_data)
                 logging.info(f"Input data for prediction: {input_data}")
 
-                dmatrix = xgb.DMatrix(input_data, enable_categorical=True)
-                prediction = airbooking_model.predict(dmatrix)
+                # Prediksi
+                prediction = airbooking_model.predict(input_data)
                 logging.info("Prediksi berhasil dilakukan.")
 
                 if prediction[0] == 1:
