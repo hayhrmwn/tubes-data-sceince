@@ -27,6 +27,8 @@ encoding, rawdata = detect_encoding(csv_url)
 if encoding:
     try:
         airbook_data = pd.read_csv(BytesIO(rawdata), encoding=encoding)
+        # Definisikan model_feature_names berdasarkan data yang ada
+        model_feature_names = airbook_data.drop('BookingStatus', axis=1).columns.tolist()  # Contoh: sesuaikan sesuai dataset Anda
     except Exception as e:
         st.error(f"Gagal membaca file CSV dengan encoding {encoding}: {e}")
         airbook_data = None
