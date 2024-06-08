@@ -6,3 +6,6 @@ pip==23.1.2
 xgboost
 chardet
 lightgbm
+scikit-learn
+tensorflow
+joblib
