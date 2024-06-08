@@ -28,8 +28,12 @@ if not os.path.exists(local_model_path):
 if not os.path.exists(local_csv_path):
     download_file(csv_url, local_csv_path)
 
-# Load the model
-rf_model = joblib.load(local_model_path)
+# Try to load the model
+try:
+    rf_model = joblib.load(local_model_path)
+except Exception as e:
+    st.error(f"Error loading the model: {e}")
+    st.stop()
 
 # Load original data from the local CSV file
 df_original = pd.read_csv(local_csv_path, encoding='latin1')
@@ -89,9 +93,8 @@ prediction = rf_model.predict_proba(input_data)[0][1]
 # Determine if wants extra baggage or not
 wants_baggage = "wants extra baggage" if prediction > 0.5 else "doesn't want extra baggage"
 
-# Display prediction result
-st.write(f"Prediction: {prediction:.2f}")
-st.write(f"The customer {wants_baggage}")
+# Display prediction result using st.success
+st.success(f"Prediction: {prediction:.2f}\nThe customer {wants_baggage}")
 
 if __name__ == '__main__':
     st._is_running_with_streamlit = True
