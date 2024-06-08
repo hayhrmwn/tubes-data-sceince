@@ -1,38 +1,38 @@
 import streamlit as st
 import pandas as pd
+import requests
+import os
 from sklearn.preprocessing import OneHotEncoder
 import joblib
-import requests
-from io import BytesIO
 
 # Function to download a file from a URL
-def download_file(url):
+def download_file(url, local_path):
     response = requests.get(url)
     response.raise_for_status()  # Ensure we notice bad responses
-    return BytesIO(response.content)
+    with open(local_path, 'wb') as file:
+        file.write(response.content)
 
-# Load the pre-trained model
+# Model URL and local path
 model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/rf_model_wants_extra_baggage.pkl'
-rf_model = joblib.load(download_file(model_url))
+local_model_path = 'rf_model_wants_extra_baggage.pkl'
 
-encoder_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/encoder_wants_extra_baggage.pkl'
-encoder = joblib.load(download_file(encoder_url))
-
-feature_names_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/feature_names_wants_extra_baggage.pkl'
-feature_names_used_in_training = joblib.load(download_file(feature_names_url))
-
-# CSV URL
+# CSV URL and local path
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
+local_csv_path = 'customer_booking.csv'
+
+# Download the model if it doesn't exist locally
+if not os.path.exists(local_model_path):
+    download_file(model_url, local_model_path)
+
+# Download the CSV if it doesn't exist locally
+if not os.path.exists(local_csv_path):
+    download_file(csv_url, local_csv_path)
+
+# Load original data from the local CSV file
+df_original = pd.read_csv(local_csv_path, encoding='latin1')
 
 # Streamlit interface
 st.title("Customer Booking Prediction")
-
-# Load original data from the CSV file
-@st.cache
-def load_data():
-    return pd.read_csv(csv_url, encoding='latin1')
-
-df_original = load_data()
 
 # User input
 num_passengers = st.number_input('Number of Passengers', min_value=1, step=1)
@@ -62,20 +62,34 @@ input_data = pd.DataFrame({
     'wants_in_flight_meals': [1 if wants_in_flight_meals == 'Yes' else 0]
 })
 
+# Preprocess the original data to match the training data
+df_original.drop(['booking_complete', 'flight_duration', 'route', 'wants_extra_baggage'], axis=1, inplace=True)  # Drop irrelevant columns and the target
+encoder = OneHotEncoder(drop='first', handle_unknown='ignore')
+encoded_cols = encoder.fit_transform(df_original[['booking_origin']])
+encoded_df = pd.DataFrame(encoded_cols.toarray(), columns=encoder.get_feature_names_out(['booking_origin']))
+df_original = pd.concat([df_original.select_dtypes(exclude='object'), encoded_df], axis=1)
+
+# Load the model directly from local path
+try:
+    rf_model = joblib.load(local_model_path)
+except Exception as e:
+    st.error(f"Error loading the model: {e}")
+    st.stop()
+
 # One-hot encode categorical features
 encoded_input = encoder.transform(input_data[['booking_origin']]).toarray()
 encoded_df = pd.DataFrame(encoded_input, columns=encoder.get_feature_names_out(['booking_origin']))
 input_data = pd.concat([input_data.drop('booking_origin', axis=1), encoded_df], axis=1)
 
-# Reorder columns to match training data
-input_data = input_data[feature_names_used_in_training]
-
 # Make prediction
-prediction = rf_model.predict_proba(input_data)[0][1]
+try:
+    prediction = rf_model.predict_proba(input_data)[0][1]
+except Exception as e:
+    st.error(f"Error making prediction: {e}")
+    st.stop()
 
 # Determine if wants extra baggage or not
 wants_baggage = "wants extra baggage" if prediction > 0.5 else "doesn't want extra baggage"
 
 # Display prediction result using st.success
 st.success(f"Prediction: {prediction:.2f}\nThe customer {wants_baggage}")
-
