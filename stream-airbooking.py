@@ -2,8 +2,10 @@ import streamlit as st
 import pandas as pd
 import requests
 import os
-from sklearn.preprocessing import OneHotEncoder
 import joblib
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier
 
 # Function to download a file from a URL
 def download_file(url, local_path):
@@ -95,17 +97,4 @@ except Exception as e:
     st.stop()
 
 # Determine if wants extra baggage or not
-wants_baggage = "wants extra baggage" if prediction > 0.5 else "doesn't want extra baggage"
-
-# Display prediction result using st.success
-st.success(f"Prediction: {prediction:.2f}\nThe customer {wants_baggage}")
-
-# Save the model locally
-try:
-    joblib.dump(rf_model, local_model_path, compress=True)
-except Exception as e:
-    st.error(f"Error saving the model: {e}")
-
-if __name__ == '__main__':
-    st._is_running_with_streamlit = True
-    st.run()
+wants_baggage = "wants extra baggage" if prediction > 0.5 else "
