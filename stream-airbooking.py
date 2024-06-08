@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 import os
 from sklearn.preprocessing import OneHotEncoder
-import pickle
+import joblib
 
 # Function to download a file from a URL
 def download_file(url, local_path):
@@ -71,22 +71,15 @@ df_original = pd.concat([df_original.select_dtypes(exclude='object'), encoded_df
 
 # Load the model directly from local path
 try:
-    with open(local_model_path, 'rb') as file:
-        rf_model = pickle.load(file)
+    rf_model = joblib.load(local_model_path)
 except Exception as e:
     st.error(f"Error loading the model: {e}")
     st.stop()
-
-# Get feature names used during training (excluding the target)
-feature_names_used_in_training = rf_model.feature_names_in_
 
 # One-hot encode categorical features
 encoded_input = encoder.transform(input_data[['booking_origin']]).toarray()
 encoded_df = pd.DataFrame(encoded_input, columns=encoder.get_feature_names_out(['booking_origin']))
 input_data = pd.concat([input_data.drop('booking_origin', axis=1), encoded_df], axis=1)
-
-# Reorder columns to match training data
-input_data = input_data[feature_names_used_in_training]
 
 # Make prediction
 try:
@@ -101,6 +94,4 @@ wants_baggage = "wants extra baggage" if prediction > 0.5 else "doesn't want ext
 # Display prediction result using st.success
 st.success(f"Prediction: {prediction:.2f}\nThe customer {wants_baggage}")
 
-if __name__ == '__main__':
-    st._is_running_with_streamlit = True
-    st.run()
+if __name__
