@@ -93,7 +93,3 @@ wants_baggage = "wants extra baggage" if prediction > 0.5 else "doesn't want ext
 
 # Display prediction result using st.success
 st.success(f"Prediction: {prediction:.2f}\nThe customer {wants_baggage}")
-
-if __name__ == '__main__':
-    st._is_running_with_streamlit = True
-    st.run()
