@@ -5,3 +5,4 @@ pip==23.1.2
 pandas
 scikit-learn
 tensorflow
+requests
