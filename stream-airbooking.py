@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 import os
 from sklearn.preprocessing import OneHotEncoder
-import joblib
+import pickle
 
 # Function to download a file from a URL
 def download_file(url, local_path):
@@ -71,7 +71,8 @@ df_original = pd.concat([df_original.select_dtypes(exclude='object'), encoded_df
 
 # Load the model directly from local path
 try:
-    rf_model = joblib.load(local_model_path)
+    with open(local_model_path, 'rb') as file:
+        rf_model = pickle.load(file)
 except Exception as e:
     st.error(f"Error loading the model: {e}")
     st.stop()
@@ -99,12 +100,6 @@ wants_baggage = "wants extra baggage" if prediction > 0.5 else "doesn't want ext
 
 # Display prediction result using st.success
 st.success(f"Prediction: {prediction:.2f}\nThe customer {wants_baggage}")
-
-# Save the model locally
-try:
-    joblib.dump(rf_model, local_model_path, compress=True)
-except Exception as e:
-    st.error(f"Error saving the model: {e}")
 
 if __name__ == '__main__':
     st._is_running_with_streamlit = True
