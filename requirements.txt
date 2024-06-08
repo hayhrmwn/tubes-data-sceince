@@ -3,7 +3,7 @@ pandas==2.0.3
 streamlit
 pip==23.1.2
 pandas
-scikit-learn
+scikit-learn==1.2.2
 tensorflow
 requests
 joblib
