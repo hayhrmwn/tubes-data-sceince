@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import requests
 import os
-from sklearn.preprocessing import OneHotEncoder
 import joblib
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 
@@ -71,11 +71,9 @@ encoded_cols = encoder.fit_transform(df_original[['booking_origin']])
 encoded_df = pd.DataFrame(encoded_cols.toarray(), columns=encoder.get_feature_names_out(['booking_origin']))
 df_original = pd.concat([df_original.select_dtypes(exclude='object'), encoded_df], axis=1)
 
-# Load the model directly from URL
+# Load the model directly from local path
 try:
-    response = requests.get(model_url)
-    response.raise_for_status()
-    rf_model = joblib.load(response.content)
+    rf_model = joblib.load(local_model_path)
 except Exception as e:
     st.error(f"Error loading the model: {e}")
     st.stop()
@@ -99,11 +97,4 @@ except Exception as e:
     st.stop()
 
 # Determine if wants extra baggage or not
-wants_baggage = "wants extra baggage" if prediction > 0.5 else "doesn't want extra baggage"
-
-# Display prediction result using st.success
-st.success(f"Prediction: {prediction:.2f}\nThe customer {wants_baggage}")
-
-if __name__ == '__main__':
-    st._is_running_with_streamlit = True
-    st.run()
+wants_baggage = "wants extra baggage" if prediction > 0.5 else "
