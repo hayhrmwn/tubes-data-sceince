@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 import os
 from sklearn.preprocessing import OneHotEncoder
+import joblib
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 
