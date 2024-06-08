@@ -98,4 +98,14 @@ except Exception as e:
 wants_baggage = "wants extra baggage" if prediction > 0.5 else "doesn't want extra baggage"
 
 # Display prediction result using st.success
-st.success(f"Prediction: {prediction:.2f}\nThe customer {w
+st.success(f"Prediction: {prediction:.2f}\nThe customer {wants_baggage}")
+
+# Save the model locally
+try:
+    joblib.dump(rf_model, local_model_path, compress=True)
+except Exception as e:
+    st.error(f"Error saving the model: {e}")
+
+if __name__ == '__main__':
+    st._is_running_with_streamlit = True
+    st.run()
