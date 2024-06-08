@@ -13,8 +13,8 @@ def download_file(url, local_path):
         file.write(response.content)
 
 # Model URL and local path
-model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/rf_model_wants_extra_baggage.pkl'
-local_model_path = 'rf_model_wants_extra_baggage.pkl'
+model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/decision_tree_model_wants_extra_baggage.pkl'
+local_model_path = 'decision_tree_model_wants_extra_baggage.pkl'
 
 # CSV URL and local path
 csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
@@ -71,13 +71,13 @@ df_original = pd.concat([df_original.select_dtypes(exclude='object'), encoded_df
 
 # Load the model directly from local path
 try:
-    rf_model = joblib.load(local_model_path)
+    dt_model = joblib.load(local_model_path)
 except Exception as e:
     st.error(f"Error loading the model: {e}")
     st.stop()
 
 # Get feature names used during training (excluding the target)
-feature_names_used_in_training = rf_model.feature_names_in_
+feature_names_used_in_training = dt_model.feature_names_in_
 
 # One-hot encode categorical features
 encoded_input = encoder.transform(input_data[['booking_origin']]).toarray()
@@ -89,7 +89,7 @@ input_data = input_data[feature_names_used_in_training]
 
 # Make prediction
 try:
-    prediction = rf_model.predict_proba(input_data)[0][1]
+    prediction = dt_model.predict_proba(input_data)[0][1]
 except Exception as e:
     st.error(f"Error making prediction: {e}")
     st.stop()
