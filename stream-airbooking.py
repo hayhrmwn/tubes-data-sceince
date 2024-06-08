@@ -1,130 +1,98 @@
 import streamlit as st
 import pandas as pd
+import joblib
 import requests
-import logging
-import chardet
-from io import BytesIO
-import pickle
-import xgboost as xgb
-import lightgbm as lgb
-from sklearn.ensemble import AdaBoostClassifier
+import os
+from sklearn.preprocessing import OneHotEncoder
 
-st.title('Prediksi Model Airbooking')
-
-csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
-xgb_model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/xgb_model.pkl'
-lgb_model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/lgb_model.pkl'
-ada_model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/ada_model.pkl'
-
-def detect_encoding(url):
+# Function to download a file from a URL
+def download_file(url, local_path):
     response = requests.get(url)
-    rawdata = response.content
-    result = chardet.detect(rawdata)
-    return result['encoding'], rawdata
+    response.raise_for_status()  # Ensure we notice bad responses
+    with open(local_path, 'wb') as file:
+        file.write(response.content)
 
-encoding, rawdata = detect_encoding(csv_url)
+# Model URL and local path
+model_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/rf_model_wants_extra_baggage.pkl'
+local_model_path = 'rf_model_wants_extra_baggage.pkl'
 
-if encoding:
-    try:
-        airbook_data = pd.read_csv(BytesIO(rawdata), encoding=encoding)
-    except Exception as e:
-        st.error(f"Gagal membaca file CSV dengan encoding {encoding}: {e}")
-        airbook_data = None
-else:
-    st.error("Gagal mendeteksi encoding file CSV.")
-    airbook_data = None
+# CSV URL and local path
+csv_url = 'https://github.com/hayhrmwn/tubes-data-sceince/raw/main/customer_booking.csv'
+local_csv_path = 'customer_booking.csv'
 
-if airbook_data is not None:
-    st.write(airbook_data)
-else:
-    st.error("Gagal membaca file CSV.")
+# Download the model if it doesn't exist locally
+if not os.path.exists(local_model_path):
+    download_file(model_url, local_model_path)
 
-# Unduh dan muat model prediksi dari URL
-def load_model(model_url):
-    try:
-        model_response = requests.get(model_url)
-        model_response.raise_for_status()  # Raise an exception for HTTP errors
-        with open('model.pkl', 'wb') as f:
-            f.write(model_response.content)
-        with open('model.pkl', 'rb') as file:
-            model = pickle.load(file)
-        logging.info("Model prediksi berhasil dimuat.")
-        return model
-    except Exception as e:
-        st.error(f"Gagal memuat model prediksi: {e}")
-        return None
+# Download the CSV if it doesn't exist locally
+if not os.path.exists(local_csv_path):
+    download_file(csv_url, local_csv_path)
 
-xgb_model = load_model(xgb_model_url)
-lgb_model = load_model(lgb_model_url)
-ada_model = load_model(ada_model_url)
+# Load the model
+rf_model = joblib.load(local_model_path)
 
-# Input kolom
-col1, col2 = st.columns(2)
+# Load original data from the local CSV file
+df_original = pd.read_csv(local_csv_path, encoding='latin1')
 
-with col1:
-    sales_channel = st.text_input('Input Sales Channel')
+# Get feature names used during training (excluding the target)
+feature_names_used_in_training = rf_model.feature_names_in_
 
-with col2:
-    trip_type = st.text_input('Input Trip Type')
+# Preprocess the original data to match the training data
+df_original.drop(['booking_complete', 'flight_duration', 'route', 'wants_extra_baggage'], axis=1, inplace=True)  # Drop irrelevant columns and the target
+encoder = OneHotEncoder(drop='first', handle_unknown='ignore')
+encoded_cols = encoder.fit_transform(df_original[['booking_origin']])
+encoded_df = pd.DataFrame(encoded_cols.toarray(), columns=encoder.get_feature_names_out(['booking_origin']))
+df_original = pd.concat([df_original.select_dtypes(exclude='object'), encoded_df], axis=1)
 
-with col1:
-    flight_day = st.text_input('Input Flight Day')
+# Streamlit interface
+st.title("Customer Booking Prediction")
 
-with col2:
-    route = st.text_input('Input Route')
+# User input
+num_passengers = st.number_input('Number of Passengers', min_value=1, step=1)
+sales_channel = st.selectbox('Sales Channel', ['Online', 'Offline'])
+trip_type = st.selectbox('Trip Type', ['One Way', 'Round Trip'])
+purchase_lead = st.number_input('Purchase Lead Time', min_value=0, step=1)
+length_of_stay = st.number_input('Length of Stay', min_value=0, step=1)
+flight_hour = st.number_input('Flight Hour', min_value=0, max_value=23, step=1)
+flight_day = st.selectbox('Flight Day', ['Weekday', 'Weekend'])
+route = st.text_input('Route')
+booking_origin = st.selectbox('Booking Origin', df_original['booking_origin'].unique())
+wants_preferred_seat = st.selectbox('Wants Preferred Seat', ['Yes', 'No'])
+wants_in_flight_meals = st.selectbox('Wants In-flight Meals', ['Yes', 'No'])
 
-with col1:
-    booking_origin = st.text_input('Input Booking Origin')
+# Create DataFrame from user input
+input_data = pd.DataFrame({
+    'num_passengers': [num_passengers],
+    'sales_channel': [sales_channel],
+    'trip_type': [trip_type],
+    'purchase_lead': [purchase_lead],
+    'length_of_stay': [length_of_stay],
+    'flight_hour': [flight_hour],
+    'flight_day': [flight_day],
+    'route': [route],
+    'booking_origin': [booking_origin],
+    'wants_preferred_seat': [1 if wants_preferred_seat == 'Yes' else 0],
+    'wants_in_flight_meals': [1 if wants_in_flight_meals == 'Yes' else 0]
+})
 
-airbook_prediction = ''
+# One-hot encode categorical features
+encoded_input = encoder.transform(input_data[['booking_origin']]).toarray()
+encoded_df = pd.DataFrame(encoded_input, columns=encoder.get_feature_names_out(['booking_origin']))
+input_data = pd.concat([input_data.drop('booking_origin', axis=1), encoded_df], axis=1)
 
-def preprocess_input(data):
-    # Mengonversi kolom object menjadi kategori
-    for column in data.columns:
-        data[column] = data[column].astype('category')
-    
-    # Lakukan encoding pada data input
-    data_encoded = pd.get_dummies(data)
-    
-    # Menambahkan kolom yang hilang dengan nilai 0
-    for col in model_feature_names:
-        if col not in data_encoded.columns:
-            data_encoded[col] = 0
-    
-    # Sesuaikan urutan kolom dengan yang digunakan oleh model
-    data_encoded = data_encoded[model_feature_names]
-    
-    return data_encoded
+# Reorder columns to match training data
+input_data = input_data[feature_names_used_in_training]
 
-if st.button('Tes Prediksi'):
-    if any(not val for val in [sales_channel, trip_type, flight_day, route, booking_origin]):
-        st.error("Semua input harus diisi.")
-    else:
-        try:
-            # Lakukan prediksi dengan model XGBoost
-            input_data = pd.DataFrame([[sales_channel, trip_type, flight_day, route, booking_origin]], 
-                                      columns=['sales_channel', 'trip_type', 'flight_day', 'route', 'booking_origin'])
-            input_data = preprocess_input(input_data)
-            logging.info(f"Input data for prediction: {input_data}")
+# Make prediction
+prediction = rf_model.predict_proba(input_data)[0][1] 
 
-            xgb_prediction = xgb_model.predict(xgb.DMatrix(input_data))[0]
+# Determine if wants extra baggage or not
+wants_baggage = "wants extra baggage" if prediction > 0.5 else "doesn't want extra baggage"
 
-            # Lakukan prediksi dengan model LightGBM
-            lgb_prediction = lgb_model.predict(input_data)[0]
+# Display prediction result
+st.write(f"Prediction: {prediction:.2f}")
+st.write(f"The customer {wants_baggage}")
 
-            # Lakukan prediksi dengan model AdaBoost
-            ada_prediction = ada_model.predict(input_data)[0]
-
-            # Gabungkan prediksi dari semua model
-            combined_prediction = (xgb_prediction + lgb_prediction + ada_prediction) / 3
-
-            if combined_prediction >= 0.5:
-                airbook_prediction = 'Yes'
-            else:
-                airbook_prediction = 'No'
-
-            st.success(f'Prediksi: {airbook_prediction}')
-
-        except Exception as e:
-            logging.error(f"Terjadi kesalahan saat prediksi: {e}")
-            st.error(f"Terjadi kesalahan saat prediksi: {e}")
+if __name__ == '__main__':
+    st._is_running_with_streamlit = True
+    st.run()
