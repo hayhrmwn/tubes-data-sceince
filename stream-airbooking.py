@@ -4,8 +4,6 @@ import requests
 import os
 from sklearn.preprocessing import OneHotEncoder
 import joblib
-from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestClassifier
 
 # Function to download a file from a URL
 def download_file(url, local_path):
@@ -71,11 +69,9 @@ encoded_cols = encoder.fit_transform(df_original[['booking_origin']])
 encoded_df = pd.DataFrame(encoded_cols.toarray(), columns=encoder.get_feature_names_out(['booking_origin']))
 df_original = pd.concat([df_original.select_dtypes(exclude='object'), encoded_df], axis=1)
 
-# Load the model directly from URL
+# Load the model directly from local path
 try:
-    response = requests.get(model_url)
-    response.raise_for_status()
-    rf_model = joblib.load(response.content)
+    rf_model = joblib.load(local_model_path)
 except Exception as e:
     st.error(f"Error loading the model: {e}")
     st.stop()
